@@ -386,6 +386,7 @@ jobs:
 
       - name: 7. Run Tests
         env:
+          PYTHONPATH: "."
           SQL_ENGINE: django.db.backends.postgresql
           SQL_DATABASE: test_db
           SQL_USER: test_user
@@ -394,8 +395,70 @@ jobs:
           SQL_PORT: 5432
           SECRET_KEY: a-test-secret-key-for-ci
           DEBUG: "1"
-        run: poetry run pytest
+        run: poetry run python manage.py test
 ```
+
+## 🚢 2. Deploy (Docker Hub )
+
+Para publicar a imagem da sua aplicação no Docker Hub, siga os passos abaixo.
+
+1.  **Construa e Tagueie a Imagem:**
+    Substitua `seu-usuario` e `seu-repositorio` pelos seus dados.
+
+    ```bash
+    docker build -t seu-usuario/seu-repositorio:latest .
+    ```
+
+2.  **Faça Login no Docker Hub:**
+
+    ```bash
+    docker login
+    ```
+
+    Você precisará inserir seu nome de usuário e senha (ou um Access Token).
+
+3.  **Envie a Imagem (Push):**
+    ```bash
+    docker push seu-usuario/seu-repositorio:latest
+    ```
+    Após o envio, sua imagem estará disponível publicamente (ou privadamente, dependendo da configuração do seu repositório) para ser usada em qualquer servidor.
+
+---
+
+## 🧰 3. Comandos Úteis
+
+### Tabela de Comandos (Makefile)
+
+O `Makefile` simplifica a maioria das operações do dia a dia.
+
+| Comando          | Descrição                                               |
+| ---------------- | ------------------------------------------------------- |
+| `make up`        | Inicia os contêineres Docker em segundo plano.          |
+| `make down`      | Para e remove os contêineres.                           |
+| `make logs`      | Exibe os logs da aplicação em tempo real.               |
+| `make shell`     | Acessa o terminal do contêiner da aplicação.            |
+| `make migrate`   | Executa as migrações do banco de dados.                 |
+| `make superuser` | Cria um novo superusuário Django.                       |
+| `make test`      | Roda a suíte de testes automatizados.                   |
+| `make format`    | Formata o código automaticamente com `black` e `isort`. |
+| `make lint`      | Roda todas as verificações de qualidade de código.      |
+
+### Comandos Essenciais do Poetry
+
+O Poetry é usado para gerenciar as dependências do projeto.
+
+| Comando                           | Descrição                                                                          |
+| --------------------------------- | ---------------------------------------------------------------------------------- |
+| `poetry install`                  | Instala todas as dependências listadas no `pyproject.toml`.                        |
+| `poetry shell`                    | Ativa o ambiente virtual do projeto no seu terminal.                               |
+| `poetry add <pacote>`             | Adiciona uma nova dependência principal ao projeto.                                |
+| `poetry add <pacote> --group dev` | Adiciona uma nova dependência de desenvolvimento (ex: `pytest`).                   |
+| `poetry remove <pacote>`          | Remove uma dependência do projeto.                                                 |
+| `poetry show`                     | Lista todas as dependências instaladas e suas versões.                             |
+| `poetry update`                   | Atualiza todas as dependências para suas versões mais recentes.                    |
+| `poetry run <comando>`            | Executa um comando dentro do ambiente virtual do Poetry (ex: `poetry run pytest`). |
+
+---
 
 ## 👤 Autor
 
