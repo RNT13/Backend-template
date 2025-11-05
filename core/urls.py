@@ -17,6 +17,7 @@ Including another URLconf
 
 from django.contrib import admin
 from django.urls import include, path
+
 # A view correta para obter o token
 from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.routers import DefaultRouter

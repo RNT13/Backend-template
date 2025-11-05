@@ -37,9 +37,7 @@ class Migration(migrations.Migration):
                 ),
                 (
                     "products",
-                    models.ManyToManyField(
-                        related_name="orders", to="products.product"
-                    ),
+                    models.ManyToManyField(related_name="orders", to="products.product"),
                 ),
             ],
         ),

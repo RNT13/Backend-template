@@ -1,4 +1,8 @@
-from rest_framework.authentication import TokenAuthentication
+from rest_framework.authentication import (
+    BasicAuthentication,
+    SessionAuthentication,
+    TokenAuthentication,
+)
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.viewsets import ModelViewSet
 
@@ -8,7 +12,11 @@ from .serializers import OrderCreateSerializer, OrderReadSerializer
 
 class OrderViewSet(ModelViewSet):
 
-    authentication_classes = [TokenAuthentication]
+    authentication_classes = [
+        TokenAuthentication,
+        SessionAuthentication,
+        BasicAuthentication,
+    ]
     permission_classes = [IsAuthenticated]
     queryset = Order.objects.all().prefetch_related("items", "items__product")
 

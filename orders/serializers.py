@@ -68,9 +68,7 @@ class OrderCreateSerializer(serializers.ModelSerializer):
                 try:
                     product = Product.objects.get(id=item_data["product_id"])
                 except Product.DoesNotExist:
-                    raise serializers.ValidationError(
-                        f"Produto com ID {item_data['product_id']} não encontrado."
-                    )
+                    raise serializers.ValidationError(f"Produto com ID {item_data['product_id']} não encontrado.")
 
                 if product.stock < item_data["quantity"]:
                     raise serializers.ValidationError(

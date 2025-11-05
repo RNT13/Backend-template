@@ -88,15 +88,15 @@ coverage: ## 📊 Roda os testes e gera um relatório de cobertura de código.
 lint: format check ## 💅 Roda todas as verificações de formatação e qualidade.
 
 .PHONY: format
-format: ## 🎨 Formata o código automaticamente com black e isort.
+format: ## 🎨 Formata o código automaticamente com black e isort (DENTRO do contêiner).
 	@echo "🎨 Formatando o código com black e isort..."
-	poetry run black .
-	poetry run isort .
+	docker-compose exec $(SERVICE_NAME) poetry run black .
+	docker-compose exec $(SERVICE_NAME) poetry run isort .
 
 .PHONY: check
-check: ## 🧐 Verifica a formatação e a qualidade do código (sem fazer alterações).
+check: ## 🧐 Verifica a formatação e a qualidade do código (DENTRO do contêiner).
 	@echo "🧐 Verificando a qualidade do código..."
-	poetry run flake8 .
-	poetry run black --check .
-	poetry run isort --check .
+	docker-compose exec $(SERVICE_NAME) poetry run flake8 .
+	docker-compose exec $(SERVICE_NAME) poetry run black --check .
+	docker-compose exec $(SERVICE_NAME) poetry run isort --check .
 

@@ -361,25 +361,30 @@ jobs:
           --health-retries 5
 
     steps:
-      - uses: actions/checkout@v4
+      - name: 1. Checkout Repository
+        uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: 2. Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.13"
 
-      - name: Install Poetry and dependencies
-        run: |
-          pip install poetry
-          poetry install
+      - name: 3. Install Poetry
+        run: pip install poetry
 
-      - name: Run linters
+      - name: 4. Configure Poetry
+        run: poetry config virtualenvs.create false
+
+      - name: 5. Install Dependencies
+        run: poetry install --no-root -v
+
+      - name: 6. Run Linters
         run: |
           poetry run black . --check
           poetry run isort . --check-only
           poetry run flake8 .
 
-      - name: Run tests
+      - name: 7. Run Tests
         env:
           SQL_ENGINE: django.db.backends.postgresql
           SQL_DATABASE: test_db
@@ -387,8 +392,8 @@ jobs:
           SQL_PASSWORD: test_password
           SQL_HOST: localhost
           SQL_PORT: 5432
-          SECRET_KEY: test-secret-key
-          DEBUG: 1
+          SECRET_KEY: a-test-secret-key-for-ci
+          DEBUG: "1"
         run: poetry run pytest
 ```
 
