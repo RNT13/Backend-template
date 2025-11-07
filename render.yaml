@@ -1,0 +1,22 @@
+services:
+  - type: web
+    name: minha-api-django
+    env: docker
+    plan: free
+    region: oregon
+
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: postgres-db-para-api
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: RENDER
+        value: "true"
+
+databases:
+  - name: postgres-db-para-api
+    databaseName: minha_api_db
+    user: meu_usuario_api
+    plan: free

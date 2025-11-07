@@ -1,59 +1,44 @@
 # Backend API de Vendas 🐍
 
-Um template robusto de backend construído com **Django** e **Django REST Framework**, projetado para gerenciar produtos e pedidos. O projeto utiliza **Poetry** para gerenciamento de dependências, **PostgreSQL** como banco de dados, e é totalmente containerizado com **Docker**.
+Um template profissional de backend usando **Django**, **Django REST
+Framework**, **Poetry**, **Docker**, **PostgreSQL**, CI com **GitHub
+Actions**, e suporte para deploy em **Render**.
 
-Inclui autenticação por token, testes automatizados com **pytest**, e um fluxo de trabalho de CI/CD com **GitHub Actions**, garantindo um desenvolvimento rápido, padronizado e profissional para qualquer solução de e-commerce ou API REST. 🚀
+Este README combina as instruções originais com o guia completo de
+criação de projetos usando Poetry, GitHub e Render.
 
 ---
 
 ## 📖 Índice
 
-1. [**Como Usar o Projeto (Guia Rápido)**](#-1-como-usar-o-projeto-guia-rápido)
-
-   - [Clonar o Projeto](#-11-clonar-o-projeto)
-   - [Configurar o `.env`](#-12-configurar-o-arquivo-env)
-   - [Subir os Containers com Docker](#-13-subir-os-containers-com-docker)
-   - [Aplicar Migrações e Criar Superusuário](#-14-aplicar-migrações-e-criar-superusuário)
-   - [Endpoints da API](#-15-endpoints-da-api)
-   - [Rodar Testes e Ferramentas de Qualidade](#-16-rodar-testes-e-ferramentas-de-qualidade)
-
-2. [**Como Construir Este Projeto do Zero (Tutorial)**](#-2-como-construir-este-projeto-do-zero-tutorial)
-
-   - [Etapa 1: Criar o Projeto Base](#etapa-1--criar-o-projeto-base-com-poetry-e-django)
-   - [Etapa 2: Estrutura de Diretórios](#etapa-2--estrutura-de-diretórios)
-   - [Etapa 3: Configuração do Django](#etapa-3--configuração-do-django)
-   - [Etapa 4: Models](#etapa-4--models-básicos)
-   - [Etapa 5: Serializers e Views](#etapa-5--serializers-e-views)
-   - [Etapa 6: URLs](#etapa-6--urls)
-   - [Etapa 7: Testes com Pytest](#etapa-7--testes-com-pytest--factory_boy--faker)
-   - [Etapa 8: Makefile](#etapa-8--makefile-básico)
-   - [Etapa 9: Docker e Docker Compose](#etapa-9--docker--docker-compose)
-   - [Etapa 10: GitHub Actions (CI)](#etapa-10--github-actions)
+1.  ✅ Como Usar o Projeto (Guia Rápido)
+2.  ✅ Como Construir Este Projeto do Zero (Tutorial)
+3.  ✅ Preparando para Deploy no Render
+4.  ✅ Comandos Úteis (Docker, Makefile, Poetry)
+5.  ✅ Autor
 
 ---
 
-## 🚀 1. Como Usar o Projeto (Guia Rápido)
+# ✅ 1. Como Usar o Projeto (Guia Rápido)
 
-Esta seção é para quem deseja rodar o projeto rapidamente.
-
-### ✅ 1.1. Clonar o Projeto
+### ✅ Clonar o Projeto
 
 ```bash
 git clone https://github.com/seu-usuario/seu-repositorio.git
 cd seu-repositorio
 ```
 
-### ✅ 1.2. Configurar o Arquivo .env
+---
 
-Crie um arquivo .env na raiz do projeto. Ele guardará as variáveis de ambiente para a aplicação e o banco de dados.
+### ✅ Configurar o Arquivo `.env`
+
+Crie um arquivo `.env` com:
 
 ```env
-# Configurações do Django
 DEBUG=1
-SECRET_KEY=sua-chave-secreta-super-forte-aqui
+SECRET_KEY=sua-chave-secreta
 DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1
 
-# Configurações do Banco de Dados (PostgreSQL )
 SQL_ENGINE=django.db.backends.postgresql
 SQL_DATABASE=BackendTemplate_dev_db
 SQL_USER=BackendTemplate_dev
@@ -62,134 +47,102 @@ SQL_HOST=db
 SQL_PORT=5432
 ```
 
-Atenção: Os valores do banco de dados devem ser os mesmos definidos no seu docker-compose.yml.
+---
 
-### ✅ 1.3. Subir os Containers com Docker
-
-Com o Docker e o Docker Compose instalados, suba os serviços web (Django) e db (PostgreSQL).
+### ✅ Subir os Containers com Docker
 
 ```bash
 docker-compose up -d --build
 ```
 
-O serviço web estará acessível em [http://localhost:8000](http://localhost:8000).
-Para visualizar os logs: `docker-compose logs -f web`.
+Acesse: http://localhost:8000
 
-### ✅ 1.4. Aplicar Migrações e Criar Superusuário
+---
+
+### ✅ Aplicar Migrações e Criar Superusuário
 
 ```bash
 docker-compose exec web python manage.py migrate
 docker-compose exec web python manage.py createsuperuser
 ```
 
-Acesse o painel de administração em: [http://127.0.0.1:8000/admin/](http://127.0.0.1:8000/admin/).
+---
 
-### ✅ 1.5. Endpoints da API
+### ✅ Endpoints Principais
 
-Para interagir com a API, primeiro obtenha um token de autenticação.
+---
 
-**Endpoint de Autenticação:** `POST /api-token-auth/`
+Método Endpoint Descrição
 
-```json
-{
-  "username": "seu-usuario",
-  "password": "sua-senha"
-}
-```
+---
 
-Use o token recebido no cabeçalho `Authorization: Token seu_token_aqui`.
+GET/POST /api/v1/products/ Lista ou cria produtos
 
-**Endpoints Principais (/api/v1/)**
+GET/PUT/DELETE /api/v1/products/{id}/ Detalha/edita/deleta
+produto
 
-| Método         | Endpoint               | Descrição                                    |
-| -------------- | ---------------------- | -------------------------------------------- |
-| GET/POST       | /api/v1/products/      | Lista ou cria produtos.                      |
-| GET/PUT/DELETE | /api/v1/products/{id}/ | Detalha, atualiza ou deleta um produto.      |
-| GET/POST       | /api/v1/orders/        | Lista os pedidos do usuário ou cria um novo. |
-| GET            | /api/v1/orders/{id}/   | Detalha um pedido específico.                |
+GET/POST /api/v1/orders/ Lista ou cria pedidos
 
-### ✅ 1.6. Rodar Testes e Ferramentas de Qualidade
+GET /api/v1/orders/{id}/ Detalha pedido
+
+---
+
+---
+
+### ✅ Testes e Qualidade
 
 ```bash
-# Rodar testes
 docker-compose exec web poetry run pytest -v
-
-# Rodar linters e formatadores
 docker-compose exec web poetry run black .
 docker-compose exec web poetry run isort .
 docker-compose exec web poetry run flake8 .
 ```
 
-## 🛠️ 2. Como Construir Este Projeto do Zero (Tutorial)
+---
 
-### ETAPA 1 — Criar o Projeto Base com Poetry e Django
+# ✅ 2. Como Construir Este Projeto do Zero (Tutorial)
+
+### 🧩 Criar Projeto com Poetry
 
 ```bash
-mkdir BackendTemplate
-cd BackendTemplate
-
-# Inicializa o projeto e adiciona as dependências
 poetry init -n
 poetry add django djangorestframework psycopg2-binary django-extensions
 poetry add black isort flake8 pytest pytest-django factory-boy faker --group dev
-
-# Crie o projeto Django:
-poetry run django-admin startproject core .
 ```
 
-### ETAPA 2 — Estrutura de Diretórios
+---
+
+### 🏗️ Criar Estrutura Django
 
 ```bash
+poetry run django-admin startproject core .
 poetry run python manage.py startapp products
 poetry run python manage.py startapp orders
 ```
 
-Estrutura final:
+---
 
-```
-/
-├── core/
-├── products/
-├── orders/
-├── .github/workflows/
-├── .env
-├── manage.py
-├── pyproject.toml
-├── Dockerfile
-└── docker-compose.yml
-```
+### 🛠️ Configurações do Django
 
-### ETAPA 3 — Configuração do Django
-
-No arquivo `core/settings.py`:
+Adicionar em `core/settings.py`:
 
 ```python
 INSTALLED_APPS = [
-    # ... apps padrão
     "rest_framework",
     "rest_framework.authtoken",
     "django_extensions",
     "products",
     "orders",
 ]
-
-REST_FRAMEWORK = {
-    "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
-    "PAGE_SIZE": 10,
-    "DEFAULT_AUTHENTICATION_CLASSES": [
-        "rest_framework.authentication.TokenAuthentication",
-        "rest_framework.authentication.SessionAuthentication",
-    ],
-}
 ```
 
-### ETAPA 4 — Models Básicos
+---
+
+### 📦 Models de Exemplo
 
 `products/models.py`
 
 ```python
-from django.db import models
-
 class Product(models.Model):
     name = models.CharField(max_length=120)
     description = models.TextField(blank=True)
@@ -197,271 +150,115 @@ class Product(models.Model):
     stock = models.PositiveIntegerField(default=0)
 ```
 
-`orders/models.py`
+---
+
+### 🔄 URLs
+
+`core/urls.py`:
 
 ```python
-from django.db import models
-from django.contrib.auth.models import User
-from products.models import Product
-
-class Order(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-
-class OrderItem(models.Model):
-    order = models.ForeignKey(Order, related_name="items", on_delete=models.CASCADE)
-    product = models.ForeignKey(Product, on_delete=models.CASCADE)
-```
-
-### ETAPA 5 — Serializers e Views
-
-`products/views.py`
-
-```python
-from rest_framework.viewsets import ModelViewSet
-from .models import Product
-from .serializers import ProductSerializer
-
-class ProductViewSet(ModelViewSet):
-    queryset = Product.objects.all()
-    serializer_class = ProductSerializer
-```
-
-### ETAPA 6 — URLs
-
-`core/urls.py`
-
-```python
-from django.contrib import admin
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from products.views import ProductViewSet
-from orders.views import OrderViewSet
-
-router = DefaultRouter()
 router.register(r"products", ProductViewSet)
 router.register(r"orders", OrderViewSet)
-
-urlpatterns = [
-    path("admin/", admin.site.urls),
-    path("api/v1/", include(router.urls)),
-]
 ```
 
-### ETAPA 7 — Testes com Pytest + factory_boy + Faker
+---
 
-`products/tests/factories.py`
+# ✅ 3. Deploy no Render
+
+Render exige `requirements.txt`.
+
+### ✅Com poetry gerar requirements.txt:
+
+```bash
+poetry export -f requirements.txt --output requirements.txt --without-hashes
+```
+
+### ✅Com pip gerar requirements.txt:
+
+```bash
+pip freeze > requirements.txt
+
+```
+
+### ✅ Instalar pacotes para Deploy
+
+```bash
+poetry add gunicorn psycopg2-binary dj-database-url
+poetry export -f requirements.txt --output requirements.txt --without-hashes
+```
+
+---
+
+### ✅ Configurações extras no Django
+
+`settings.py`:
 
 ```python
-import factory
-from faker import Faker
-from products.models import Product
+import dj_database_url
 
-fake = Faker()
+DATABASES = {
+    'default': dj_database_url.config(default='sqlite:///db.sqlite3')
+}
 
-class ProductFactory(factory.django.DjangoModelFactory):
-    class Meta:
-        model = Product
-    name = factory.LazyAttribute(lambda _: fake.word())
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+ALLOWED_HOSTS = ["*"]
 ```
 
-### ETAPA 8 — Makefile Básico
+---
 
-```makefile
-# Makefile
-run:
-	docker-compose exec web python manage.py runserver
+### ✅ Procfile
 
-migrate:
-	docker-compose exec web python manage.py migrate
+    web: gunicorn core.wsgi:application
 
-lint:
-	docker-compose exec web poetry run black .
-	docker-compose exec web poetry run isort .
+---
 
-test:
-	docker-compose exec web poetry run pytest -v
-```
-
-### ETAPA 9 — Docker + Docker Compose
-
-`Dockerfile`
-
-```dockerfile
-FROM python:3.13-slim
-ENV PYTHONUNBUFFERED=1
-WORKDIR /app
-
-# Instala Poetry e dependências
-COPY pyproject.toml poetry.lock ./
-RUN pip install poetry && poetry install --no-root --no-dev
-
-# Copia o código da aplicação
-COPY . .
-EXPOSE 8000
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
-```
-
-`docker-compose.yml`
+### ✅ render.yaml
 
 ```yaml
-version: "3.9"
 services:
-  db:
-    image: postgres:16-alpine
-    environment:
-      - POSTGRES_DB=BackendTemplate_dev_db
-      - POSTGRES_USER=BackendTemplate_dev
-      - POSTGRES_PASSWORD=BackendTemplate123
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-  web:
-    build: .
-    command: python manage.py runserver 0.0.0.0:8000
-    volumes:
-      - .:/app
-    ports:
-      - "8000:8000"
-    depends_on:
-      - db
-    env_file:
-      - .env
-volumes:
-  postgres_data:
+  - type: web
+    name: backend-api
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn core.wsgi:application
 ```
-
-### ETAPA 10 — GitHub Actions
-
-`.github/workflows/main.yml`
-
-```yaml
-name: Django CI
-
-on:
-  push:
-    branches: ["main"]
-  pull_request:
-    branches: ["main"]
-
-jobs:
-  build-and-test:
-    runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_DB: test_db
-          POSTGRES_USER: test_user
-          POSTGRES_PASSWORD: test_password
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-      - name: 1. Checkout Repository
-        uses: actions/checkout@v4
-
-      - name: 2. Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.13"
-
-      - name: 3. Install Poetry
-        run: pip install poetry
-
-      - name: 4. Configure Poetry
-        run: poetry config virtualenvs.create false
-
-      - name: 5. Install Dependencies
-        run: poetry install --no-root -v
-
-      - name: 6. Run Linters
-        run: |
-          poetry run black . --check
-          poetry run isort . --check-only
-          poetry run flake8 .
-
-      - name: 7. Run Tests
-        env:
-          PYTHONPATH: "."
-          SQL_ENGINE: django.db.backends.postgresql
-          SQL_DATABASE: test_db
-          SQL_USER: test_user
-          SQL_PASSWORD: test_password
-          SQL_HOST: localhost
-          SQL_PORT: 5432
-          SECRET_KEY: a-test-secret-key-for-ci
-          DEBUG: "1"
-        run: poetry run python manage.py test
-```
-
-## 🚢 2. Deploy (Docker Hub )
-
-Para publicar a imagem da sua aplicação no Docker Hub, siga os passos abaixo.
-
-1.  **Construa e Tagueie a Imagem:**
-    Substitua `seu-usuario` e `seu-repositorio` pelos seus dados.
-
-    ```bash
-    docker build -t seu-usuario/seu-repositorio:latest .
-    ```
-
-2.  **Faça Login no Docker Hub:**
-
-    ```bash
-    docker login
-    ```
-
-    Você precisará inserir seu nome de usuário e senha (ou um Access Token).
-
-3.  **Envie a Imagem (Push):**
-    ```bash
-    docker push seu-usuario/seu-repositorio:latest
-    ```
-    Após o envio, sua imagem estará disponível publicamente (ou privadamente, dependendo da configuração do seu repositório) para ser usada em qualquer servidor.
 
 ---
 
-## 🧰 3. Comandos Úteis
+# ✅ 4. Comandos Úteis
 
-### Tabela de Comandos (Makefile)
+### ✅ Makefile:
 
-O `Makefile` simplifica a maioria das operações do dia a dia.
-
-| Comando          | Descrição                                               |
-| ---------------- | ------------------------------------------------------- |
-| `make up`        | Inicia os contêineres Docker em segundo plano.          |
-| `make down`      | Para e remove os contêineres.                           |
-| `make logs`      | Exibe os logs da aplicação em tempo real.               |
-| `make shell`     | Acessa o terminal do contêiner da aplicação.            |
-| `make migrate`   | Executa as migrações do banco de dados.                 |
-| `make superuser` | Cria um novo superusuário Django.                       |
-| `make test`      | Roda a suíte de testes automatizados.                   |
-| `make format`    | Formata o código automaticamente com `black` e `isort`. |
-| `make lint`      | Roda todas as verificações de qualidade de código.      |
-
-### Comandos Essenciais do Poetry
-
-O Poetry é usado para gerenciar as dependências do projeto.
-
-| Comando                           | Descrição                                                                          |
-| --------------------------------- | ---------------------------------------------------------------------------------- |
-| `poetry install`                  | Instala todas as dependências listadas no `pyproject.toml`.                        |
-| `poetry shell`                    | Ativa o ambiente virtual do projeto no seu terminal.                               |
-| `poetry add <pacote>`             | Adiciona uma nova dependência principal ao projeto.                                |
-| `poetry add <pacote> --group dev` | Adiciona uma nova dependência de desenvolvimento (ex: `pytest`).                   |
-| `poetry remove <pacote>`          | Remove uma dependência do projeto.                                                 |
-| `poetry show`                     | Lista todas as dependências instaladas e suas versões.                             |
-| `poetry update`                   | Atualiza todas as dependências para suas versões mais recentes.                    |
-| `poetry run <comando>`            | Executa um comando dentro do ambiente virtual do Poetry (ex: `poetry run pytest`). |
+Comando Ação
 
 ---
 
-## 👤 Autor
+make up Sobe Docker
+make down Para os containers
+make logs Logs
+make migrate Migrações
+make test Roda testes
+make lint Verifica código
+make format Formata código
 
-Feito com 💙 por [Renato Minoita](https://www.linkedin.com/in/renato-minoita/)
+---
 
-Confira mais no [GitHub](https://github.com/RNT13)
+### ✅ Poetry
+
+Comando Ação
+
+---
+
+poetry install Instala dependências
+poetry add x Adiciona pacote
+poetry shell Entra no ambiente
+poetry run x Executa comando
+
+---
+
+# 👤 Autor
+
+**Renato Minoita**\
+GitHub: https://github.com/RNT13\
+LinkedIn: https://www.linkedin.com/in/renato-minoita/
