@@ -124,8 +124,10 @@ SQL_PASSWORD=BackendTemplate123
 poetry install
 
 # Ativa o ambiente no terminal
-poetry shell
-# ou no PowerShell: .\.venv\Scripts\Activate.ps1
+poetry env activate
+
+# Depois use o comando que será explicado abaixo, exemplo:
+& "D:\Curso\MeusProjetos (Python)\Backend-template\.venv\Scripts\activate.ps1"
 ```
 
 **5. Aplique as Migrações e Crie um Usuário:**
@@ -222,24 +224,89 @@ O projeto está pré-configurado para deploy no Render.
 O Render usa `requirements.txt`. Gere-o a partir do `poetry.lock`:
 
 ```bash
-poetry export -f requirements.txt --output requirements.txt --without-hashes
+pip freeze > requirements.txt
 ```
 
 **2. Faça o Push para o GitHub:**
 Garanta que seu `requirements.txt` esteja atualizado no seu repositório.
 
-**3. Configure no Painel do Render:**
+**3. Deploy no Render**
 
-- Crie um "New Web Service" e aponte para o seu repositório do GitHub.
-- **Build Command:** `pip install -r requirements.txt && python manage.py migrate`
-- **Start Command:** `gunicorn core.wsgi:application`
-- Adicione um serviço de "PostgreSQL" e copie a "Internal Connection String".
-- Na aba "Environment" do seu serviço web, adicione as variáveis de ambiente:
-  - `DATABASE_URL`: Cole a "Internal Connection String" do seu banco de dados.
-  - `SECRET_KEY`: Gere uma chave segura e cole aqui.
-  - `DEBUG`: `0`
+O projeto está **totalmente preparado para deploy no Render**, com configuração automática para detectar o ambiente de produção e ajustar o comportamento do Django de forma segura.
 
-O `settings.py` já está configurado para detectar o ambiente do Render e usar a `DATABASE_URL` automaticamente.
+### ⚙️ Configuração do Ambiente
+
+O `settings.py` identifica automaticamente o ambiente Render:
+
+```python
+IS_RENDER = os.getenv("RENDER", "false").lower() == "true"
+DEBUG = bool(int(os.getenv("DEBUG", 1))) if not IS_RENDER else False
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1 localhost").split()
+if IS_RENDER:
+    RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME")
+    if RENDER_EXTERNAL_HOSTNAME:
+        ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
+```
+
+🔍 **Explicação:**
+
+- O Render define `RENDER=true`, e o Django ajusta `DEBUG=False` automaticamente.
+- O domínio público do Render é adicionado automaticamente ao `ALLOWED_HOSTS`.
+- Caso ocorra o erro **400 Bad Request**, adicione temporariamente `ALLOWED_HOSTS=["*"]`.
+
+---
+
+### 🧱 Passos para o Deploy
+
+1. **Gerar o `requirements.txt`:**
+
+```bash
+pip freeze > requirements.txt
+```
+
+2. **Fazer o Push para o GitHub.**
+
+3. **Criar o serviço no Render:**
+
+   - **Build Command:**
+     ```bash
+     pip install -r requirements.txt && python manage.py migrate && python manage.py collectstatic --noinput
+     ```
+   - **Start Command:**
+     ```bash
+     gunicorn core.wsgi:application
+     ```
+
+4. **Variáveis de ambiente no Render:**
+
+| Variável               | Valor                               |
+| ---------------------- | ----------------------------------- |
+| `RENDER`               | `true`                              |
+| `DATABASE_URL`         | Internal Database URL do PostgreSQL |
+| `SECRET_KEY`           | Chave gerada pelo Django            |
+| `DEBUG`                | `0`                                 |
+| `DJANGO_ALLOWED_HOSTS` | (opcional) domínio do Render        |
+
+---
+
+### 🚀 Evitando Erro 400
+
+Se aparecer **Bad Request (400)**, adicione o domínio do Render manualmente nas variáveis de ambiente:
+
+```bash
+DJANGO_ALLOWED_HOSTS=backend-django-xyz.onrender.com
+```
+
+E reinicie o serviço.
+
+---
+
+### 🧩 Boas Práticas
+
+- ✅ Nunca use `DEBUG=True` em produção.
+- ✅ Use `RENDER=true` para ativar o modo de produção.
+- ✅ Utilize a **Internal Database URL** no `DATABASE_URL`.
+- ✅ Prefira manter `ALLOWED_HOSTS` dinâmico.
 
 ---
 
