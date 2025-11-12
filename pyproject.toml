@@ -1,44 +1,41 @@
-[project]
+# Seção principal de configuração do Poetry
+[tool.poetry]
 name = "backend-template"
 version = "0.1.0"
-description = ""
-authors = [
-    {name = "RNT13",email = "renatornt13@gmail.com"}
-]
+description = "Descrição do seu projeto aqui."
+authors = ["RNT13 <renatornt13@gmail.com>"]
 readme = "README.md"
-requires-python = ">=3.13"
-dependencies = [
-    "django (>=5.2.7,<6.0.0)",
-    "djangorestframework (>=3.16.1,<4.0.0)",
-    "psycopg2-binary (>=2.9.11,<3.0.0)",
-    "django-extensions (>=4.1,<5.0)",
-    "dj-database-url (>=3.0.1,<4.0.0)"
-]
+package-mode = false
 
+# Dependências principais do projeto
+[tool.poetry.dependencies]
+python = ">=3.13"
+django = ">=5.2.7,<6.0.0"
+djangorestframework = ">=3.16.1,<4.0.0"
+psycopg2-binary = ">=2.9.11,<3.0.0"
+django-extensions = ">=4.1,<5.0"
+dj-database-url = ">=3.0.1,<4.0.0"
+gunicorn = ">=23.0.0,<24.0.0"
+whitenoise = ">=6.11.0,<7.0.0"
 
+# Dependências de desenvolvimento
+python-dotenv = "^1.2.1"
+[tool.poetry.group.dev.dependencies]
+black = ">=24.0.0,<25.0.0"
+isort = ">=5.0.0,<6.0.0"
+flake8 = ">=7.0.0,<8.0.0"
+pytest = ">=8.0.0,<9.0.0"
+pytest-django = ">=4.11.1,<5.0.0"
+factory-boy = ">=3.3.0,<4.0.0"
+faker = ">=25.0.0,<26.0.0"
+django-debug-toolbar = ">=4.3.0,<5.0.0"
+
+# Sistema de build
 [build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
+requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
 
-[dependency-groups]
-dev = [
-    "black (>=25.9.0,<26.0.0)",
-    "isort (>=7.0.0,<8.0.0)",
-    "flake8 (>=7.3.0,<8.0.0)",
-    "pytest (>=8.4.2,<9.0.0)",
-    "pytest-django (>=4.11.1,<5.0.0)",
-    "factory-boy (>=3.3.3,<4.0.0)",
-    "faker (>=37.12.0,<38.0.0)",
-    "django-extensions (>=4.1,<5.0)",
-    "django-debug-toolbar (>=6.1.0,<7.0.0)"
-]
-
-[tool.poetry.group.dev.dependencies]
-pytest = "^8.3.3"
-black = "^25.9.0"
-isort = "^7.0.0"
-flake8 = "^7.3.0"
-
+# Configurações de ferramentas
 [tool.black]
 line-length = 120
 

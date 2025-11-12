@@ -1,264 +1,420 @@
 # Backend API de Vendas 🐍
 
-Um template profissional de backend usando **Django**, **Django REST
-Framework**, **Poetry**, **Docker**, **PostgreSQL**, CI com **GitHub
-Actions**, e suporte para deploy em **Render**.
+Um template profissional de backend usando **Django**, **Django REST Framework**, **Poetry**, **Docker**, **PostgreSQL**, CI com **GitHub Actions**, e suporte para deploy em **Render**.
 
-Este README combina as instruções originais com o guia completo de
-criação de projetos usando Poetry, GitHub e Render.
+Este README é um guia completo, desde a configuração inicial até o deploy, explicando os conceitos-chave para desenvolvimento local e em produção.
 
 ---
 
 ## 📖 Índice
 
-1.  ✅ Como Usar o Projeto (Guia Rápido)
-2.  ✅ Como Construir Este Projeto do Zero (Tutorial)
-3.  ✅ Preparando para Deploy no Render
-4.  ✅ Comandos Úteis (Docker, Makefile, Poetry)
-5.  ✅ Autor
+1.  [**Conceitos Essenciais**](#-1-conceitos-essenciais)
+    - [Gerenciamento de Ambiente com `.env`](#-gerenciamento-de-ambiente-com-env)
+    - [Desenvolvimento com Docker](#-desenvolvimento-com-docker)
+2.  [**Como Usar o Projeto (Guia Rápido)**](#-2-como-usar-o-projeto-guia-rápido)
+    - [Desenvolvimento Local (Recomendado)](#-desenvolvimento-local-recomendado)
+    - [Desenvolvimento via Docker Compose](#-desenvolvimento-via-docker-compose)
+3.  [**Comandos Úteis**](#-3-comandos-úteis)
+4.  [**Deploy no Render**](#-4-deploy-no-render)
+5.  [**Como Construir Este Projeto do Zero**](#-5-como-construir-este-projeto-do-zero)
+6.  [**Autor**](#-6-autor)
 
 ---
 
-# ✅ 1. Como Usar o Projeto (Guia Rápido)
+# ✅ 1. Conceitos Essenciais
 
-### ✅ Clonar o Projeto
+Antes de iniciar, entenda os dois pilares do ambiente de desenvolvimento deste projeto.
+
+### 📋 Gerenciamento de Ambiente com `.env`
+
+Este projeto utiliza um arquivo `.env` para gerenciar configurações sensíveis e específicas de cada ambiente (local, Docker, produção), sem expô-las no código-fonte.
+
+**Por que usar `.env`?**
+
+- **Segurança:** Mantém chaves de API, senhas de banco de dados e `SECRET_KEY` fora do Git.
+- **Flexibilidade:** Permite que cada desenvolvedor use configurações locais diferentes sem alterar o código.
+- **Padrão de Mercado:** É a abordagem padrão em projetos modernos.
+
+**Como funciona?**
+A biblioteca `python-dotenv` carrega as variáveis de um arquivo `.env` e o `settings.py` as utiliza para configurar o Django.
+
+**Existem dois modos de configuração neste projeto:**
+
+1.  **Para desenvolvimento local (`python manage.py runserver`):** O Django precisa se conectar ao banco de dados Docker via `localhost`.
+2.  **Para desenvolvimento com Docker (`docker-compose up`):** O contêiner do Django se conecta ao contêiner do banco de dados usando o nome do serviço (`db`).
+
+O arquivo `.env` correto para cada cenário é crucial.
+
+### 🐳 Desenvolvimento com Docker
+
+Docker containeriza a aplicação, garantindo que ela rode da mesma forma em qualquer máquina.
+
+**Principais Arquivos:**
+
+- `Dockerfile`: A "receita" para construir a imagem da nossa aplicação Django. Define o sistema operacional, instala dependências e configura como a aplicação deve ser executada.
+- `docker-compose.yml`: Orquestra múltiplos contêineres. Neste projeto, ele gerencia o contêiner da aplicação (`web`) e o do banco de dados (`db`), além de configurar a rede entre eles, volumes e portas.
+- `.dockerignore`: Similar ao `.gitignore`, especifica arquivos e pastas que devem ser ignorados ao construir a imagem, tornando-a mais leve e segura (ex: `.venv`, `__pycache__`).
+
+**Como Atualizar sua Imagem no Docker Hub:**
+Para publicar uma nova versão da sua imagem (`renatornt13/backend-template`):
+
+```bash
+# 1. Faça login no Docker Hub
+docker login
+
+# 2. Construa a nova imagem
+docker build -t renatornt13/backend-template .
+
+# 3. Adicione uma tag de versão (boa prática)
+docker tag renatornt13/backend-template:latest renatornt13/backend-template:v1.1
+
+# 4. Envie a nova versão para o Docker Hub
+docker push renatornt13/backend-template:v1.1
+
+# 5. (Opcional) Atualize também a tag 'latest'
+docker push renatornt13/backend-template:latest
+```
+
+---
+
+# ✅ 2. Como Usar o Projeto (Guia Rápido)
+
+Existem duas maneiras de rodar este projeto. O método local é mais rápido para o dia a dia.
+
+### 💻 Desenvolvimento Local (Recomendado)
+
+Neste modo, você roda o Django diretamente na sua máquina, mas se conecta ao banco de dados que está no Docker.
+
+**1. Clone o Projeto:**
 
 ```bash
 git clone https://github.com/seu-usuario/seu-repositorio.git
 cd seu-repositorio
 ```
 
----
+**2. Inicie o Banco de Dados com Docker:**
 
-### ✅ Configurar o Arquivo `.env`
+```bash
+docker-compose up -d db
+```
 
-Crie um arquivo `.env` com:
+**3. Crie o Arquivo `.env` para o Ambiente Local:**
+Crie um arquivo chamado `.env` na raiz do projeto com o seguinte conteúdo. **Atenção ao `SQL_HOST` e `SQL_PORT`!**
 
 ```env
+# Configurações para desenvolvimento local
 DEBUG=1
-SECRET_KEY=sua-chave-secreta
-DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1
+SECRET_KEY=django-insecure-local-secret-key
+DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
 
-SQL_ENGINE=django.db.backends.postgresql
+# Conexão com o banco de dados Docker a partir da sua máquina
+SQL_HOST=localhost
+SQL_PORT=5433 # Porta exposta no docker-compose.yml
+
+# Credenciais do banco de dados
 SQL_DATABASE=BackendTemplate_dev_db
 SQL_USER=BackendTemplate_dev
 SQL_PASSWORD=BackendTemplate123
-SQL_HOST=db
-SQL_PORT=5432
 ```
+
+**4. Instale as Dependências e Ative o Ambiente com Poetry:**
+
+```bash
+# Instala dependências e cria o .venv
+poetry install
+
+# Ativa o ambiente no terminal
+poetry shell
+# ou no PowerShell: .\.venv\Scripts\Activate.ps1
+```
+
+**5. Aplique as Migrações e Crie um Usuário:**
+
+```bash
+python manage.py migrate
+python manage.py createsuperuser
+```
+
+**6. Rode o Servidor:**
+
+```bash
+python manage.py runserver
+```
+
+Acesse: [http://127.0.0.1:8000/](http://127.0.0.1:8000/)
 
 ---
 
-### ✅ Subir os Containers com Docker
+### 🐳 Desenvolvimento via Docker Compose
+
+Neste modo, tanto o Django quanto o banco de dados rodam dentro de contêineres.
+
+**1. Clone o Projeto.**
+
+**2. Crie o Arquivo `.env` para o Ambiente Docker:**
+Crie um arquivo `.env` com o conteúdo abaixo. **Note que `SQL_HOST` agora é `db`**.
+
+```env
+# Configurações para o ambiente Docker
+DEBUG=1
+SECRET_KEY=django-insecure-docker-secret-key
+DJANGO_ALLOWED_HOSTS=localhost,127.0.0.1
+
+# Conexão entre contêineres
+SQL_HOST=db
+SQL_PORT=5432 # Porta interna da rede Docker
+
+# Credenciais
+SQL_DATABASE=BackendTemplate_dev_db
+SQL_USER=BackendTemplate_dev
+SQL_PASSWORD=BackendTemplate123
+```
+
+**3. Suba os Contêineres:**
 
 ```bash
 docker-compose up -d --build
 ```
 
-Acesse: http://localhost:8000
-
----
-
-### ✅ Aplicar Migrações e Criar Superusuário
+**4. Aplique as Migrações e Crie um Usuário:**
 
 ```bash
 docker-compose exec web python manage.py migrate
 docker-compose exec web python manage.py createsuperuser
 ```
 
----
-
-### ✅ Endpoints Principais
+Acesse: [http://localhost:8000](http://localhost:8000)
 
 ---
 
-Método Endpoint Descrição
+# ✅ 3. Comandos Úteis
 
----
+### ✅ Makefile
 
-GET/POST /api/v1/products/ Lista ou cria produtos
+Use `make` para simplificar os comandos Docker.
 
-GET/PUT/DELETE /api/v1/products/{id}/ Detalha/edita/deleta
-produto
-
-GET/POST /api/v1/orders/ Lista ou cria pedidos
-
-GET /api/v1/orders/{id}/ Detalha pedido
-
----
-
----
-
-### ✅ Testes e Qualidade
-
-```bash
-docker-compose exec web poetry run pytest -v
-docker-compose exec web poetry run black .
-docker-compose exec web poetry run isort .
-docker-compose exec web poetry run flake8 .
-```
-
----
-
-# ✅ 2. Como Construir Este Projeto do Zero (Tutorial)
-
-### 🧩 Criar Projeto com Poetry
-
-```bash
-poetry init -n
-poetry add django djangorestframework psycopg2-binary django-extensions
-poetry add black isort flake8 pytest pytest-django factory-boy faker --group dev
-```
-
----
-
-### 🏗️ Criar Estrutura Django
-
-```bash
-poetry run django-admin startproject core .
-poetry run python manage.py startapp products
-poetry run python manage.py startapp orders
-```
-
----
-
-### 🛠️ Configurações do Django
-
-Adicionar em `core/settings.py`:
-
-```python
-INSTALLED_APPS = [
-    "rest_framework",
-    "rest_framework.authtoken",
-    "django_extensions",
-    "products",
-    "orders",
-]
-```
-
----
-
-### 📦 Models de Exemplo
-
-`products/models.py`
-
-```python
-class Product(models.Model):
-    name = models.CharField(max_length=120)
-    description = models.TextField(blank=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
-    stock = models.PositiveIntegerField(default=0)
-```
-
----
-
-### 🔄 URLs
-
-`core/urls.py`:
-
-```python
-router.register(r"products", ProductViewSet)
-router.register(r"orders", OrderViewSet)
-```
-
----
-
-# ✅ 3. Deploy no Render
-
-Render exige `requirements.txt`.
-
-### ✅Com poetry gerar requirements.txt:
-
-```bash
-poetry export -f requirements.txt --output requirements.txt --without-hashes
-```
-
-### ✅Com pip gerar requirements.txt:
-
-```bash
-pip freeze > requirements.txt
-
-```
-
-### ✅ Instalar pacotes para Deploy
-
-```bash
-poetry add gunicorn psycopg2-binary dj-database-url
-poetry export -f requirements.txt --output requirements.txt --without-hashes
-```
-
----
-
-### ✅ Configurações extras no Django
-
-`settings.py`:
-
-```python
-import dj_database_url
-
-DATABASES = {
-    'default': dj_database_url.config(default='sqlite:///db.sqlite3')
-}
-
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-ALLOWED_HOSTS = ["*"]
-```
-
----
-
-### ✅ Procfile
-
-    web: gunicorn core.wsgi:application
-
----
-
-### ✅ render.yaml
-
-```yaml
-services:
-  - type: web
-    name: backend-api
-    runtime: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn core.wsgi:application
-```
-
----
-
-# ✅ 4. Comandos Úteis
-
-### ✅ Makefile:
-
-Comando Ação
-
----
-
-make up Sobe Docker
-make down Para os containers
-make logs Logs
-make migrate Migrações
-make test Roda testes
-make lint Verifica código
-make format Formata código
-
----
+| Comando        | Ação                                          |
+| -------------- | --------------------------------------------- |
+| `make up`      | Sobe os contêineres Docker em modo detached   |
+| `make down`    | Para e remove os contêineres                  |
+| `make logs`    | Exibe os logs dos contêineres                 |
+| `make migrate` | Aplica as migrações dentro do contêiner `web` |
+| `make test`    | Roda os testes com Pytest                     |
+| `make lint`    | Verifica o código com Flake8                  |
+| `make format`  | Formata o código com Black e isort            |
 
 ### ✅ Poetry
 
-Comando Ação
+| Comando               | Ação                                              |
+| --------------------- | ------------------------------------------------- |
+| `poetry install`      | Instala todas as dependências do `pyproject.toml` |
+| `poetry add <pacote>` | Adiciona um novo pacote ao projeto                |
+| `poetry shell`        | Ativa o ambiente virtual no shell atual           |
+| `poetry run <cmd>`    | Executa um comando dentro do ambiente virtual     |
 
 ---
 
-poetry install Instala dependências
-poetry add x Adiciona pacote
-poetry shell Entra no ambiente
-poetry run x Executa comando
+# ✅ 4. Deploy no Render
+
+O projeto está pré-configurado para deploy no Render.
+
+**1. Gere o `requirements.txt`:**
+O Render usa `requirements.txt`. Gere-o a partir do `poetry.lock`:
+
+```bash
+poetry export -f requirements.txt --output requirements.txt --without-hashes
+```
+
+**2. Faça o Push para o GitHub:**
+Garanta que seu `requirements.txt` esteja atualizado no seu repositório.
+
+**3. Configure no Painel do Render:**
+
+- Crie um "New Web Service" e aponte para o seu repositório do GitHub.
+- **Build Command:** `pip install -r requirements.txt && python manage.py migrate`
+- **Start Command:** `gunicorn core.wsgi:application`
+- Adicione um serviço de "PostgreSQL" e copie a "Internal Connection String".
+- Na aba "Environment" do seu serviço web, adicione as variáveis de ambiente:
+  - `DATABASE_URL`: Cole a "Internal Connection String" do seu banco de dados.
+  - `SECRET_KEY`: Gere uma chave segura e cole aqui.
+  - `DEBUG`: `0`
+
+O `settings.py` já está configurado para detectar o ambiente do Render e usar a `DATABASE_URL` automaticamente.
 
 ---
 
-# 👤 Autor
+# ✅ 5. Como Construir Este Projeto do Zero (Tutorial)
 
-**Renato Minoita**\
-GitHub: https://github.com/RNT13\
-LinkedIn: https://www.linkedin.com/in/renato-minoita/
+Este guia detalha o processo de criação deste template do zero, explicando as decisões de arquitetura e as melhores práticas adotadas.
+
+### Passo 1: Inicializar o Projeto com Poetry
+
+Poetry é a ferramenta escolhida para gerenciar dependências e ambientes virtuais, garantindo reprodutibilidade.
+
+1.  **Crie a pasta do projeto e inicie o Poetry:**
+
+    ```bash
+    mkdir backend-template
+    cd backend-template
+    poetry init -n
+    ```
+
+    - O comando `init -n` cria um `pyproject.toml` básico sem fazer perguntas.
+
+2.  **Adicione as dependências principais:**
+
+    ```bash
+    poetry add django djangorestframework psycopg2-binary django-extensions dj-database-url python-dotenv
+    ```
+
+    - `django` e `djangorestframework`: O coração do projeto.
+    - `psycopg2-binary`: Adaptador para o banco de dados PostgreSQL.
+    - `django-extensions`: Fornece ferramentas úteis de desenvolvimento.
+    - `dj-database-url` e `python-dotenv`: Para gerenciar a configuração do banco de dados a partir de variáveis de ambiente.
+
+3.  **Adicione as dependências de desenvolvimento:**
+    ```bash
+    poetry add black isort flake8 pytest pytest-django --group dev
+    ```
+    - `--group dev` separa as ferramentas de qualidade de código e testes das dependências de produção.
+
+### Passo 2: Estrutura Inicial do Django
+
+Com o ambiente pronto, criamos a estrutura base do Django.
+
+1.  **Crie o projeto principal e os apps:**
+
+    ```bash
+    # Cria o projeto 'core' no diretório atual (.)
+    poetry run django-admin startproject core .
+
+    # Cria os apps de exemplo
+    poetry run python manage.py startapp products
+    poetry run python manage.py startapp orders
+    ```
+
+2.  **Configure o `settings.py`:**
+    Abra `core/settings.py` e adicione os novos apps a `INSTALLED_APPS`:
+    ```python
+    INSTALLED_APPS = [
+        # ... apps padrão do Django ...
+        "rest_framework",
+        "rest_framework.authtoken",
+        "django_extensions",
+        "products",
+        "orders",
+    ]
+    ```
+
+### Passo 3: Configurar o Ambiente Docker
+
+Docker garante que o ambiente de desenvolvimento seja idêntico para todos.
+
+1.  **Crie o `Dockerfile`:**
+    Este arquivo define como construir a imagem da nossa aplicação.
+
+    ```Dockerfile
+    # Use uma imagem Python leve
+    FROM python:3.13-slim
+
+    # Evita que o Python gere arquivos .pyc e armazene logs em buffer
+    ENV PYTHONDONTWRITEBYTECODE 1
+    ENV PYTHONUNBUFFERED 1
+
+    WORKDIR /app
+
+    # Instala o Poetry
+    RUN pip install poetry
+
+    # Copia os arquivos de dependência e desativa a criação de .venv pelo Poetry
+    COPY pyproject.toml poetry.lock* ./
+    RUN poetry config virtualenvs.create false && poetry install --no-root --no-dev
+
+    # Copia o restante do código da aplicação
+    COPY . .
+
+    # Expõe a porta que a aplicação irá rodar
+    EXPOSE 8000
+    ```
+
+2.  **Crie o `docker-compose.yml`:**
+    Este arquivo orquestra os serviços da aplicação (web e banco de dados).
+
+    ```yaml
+    version: "3.8"
+
+    services:
+      db:
+        image: postgres:16-alpine
+        container_name: backend-template-db
+        volumes:
+          - postgres_data:/var/lib/postgresql/data
+        ports:
+          - "5433:5432"
+        environment:
+          - POSTGRES_USER=BackendTemplate_dev
+          - POSTGRES_PASSWORD=BackendTemplate123
+          - POSTGRES_DB=BackendTemplate_dev_db
+
+      web:
+        build: .
+        container_name: backend-template-web
+        command: python manage.py runserver 0.0.0.0:8000
+        volumes:
+          - .:/app
+        ports:
+          - "8000:8000"
+        env_file:
+          - .env
+        depends_on:
+          - db
+
+    volumes:
+      postgres_data:
+    ```
+
+3.  **Crie o `.dockerignore`:**
+    Para manter a imagem Docker limpa e leve.
+    ```
+    .git
+    .venv
+    __pycache__
+    db.sqlite3
+    *.pyc
+    ```
+
+### Passo 4: Finalizar a Configuração do Django
+
+Agora, conectamos o Django ao Docker e às variáveis de ambiente.
+
+1.  **Ajuste o `settings.py` para usar variáveis de ambiente:**
+    Modifique a seção `DATABASES` em `core/settings.py` para ler as configurações do `.env`, como mostrado na seção de **Conceitos Essenciais**. Isso permite que o Django se conecte tanto a `localhost:5433` (localmente) quanto a `db:5432` (via Docker).
+
+2.  **Crie os arquivos `.env`:**
+    Crie os dois arquivos `.env` (um para desenvolvimento local e outro para Docker) conforme explicado na seção **Como Usar o Projeto**.
+
+### Passo 5: Rodar e Testar
+
+Com tudo configurado, seu ambiente está pronto.
+
+1.  **Suba os contêineres:**
+
+    ```bash
+    docker-compose up -d --build
+    ```
+
+2.  **Execute as migrações:**
+    ```bash
+    docker-compose exec web python manage.py migrate
+    ```
+
+Seu projeto-template agora está totalmente funcional, seguindo as melhores práticas de desenvolvimento, gerenciamento de dependências e containerização.
+
+---
+
+# 👤 6. Autor
+
+**Renato Minoita**
+
+- GitHub: [https://github.com/RNT13](https://github.com/RNT13)
+- LinkedIn: [https://www.linkedin.com/in/renato-minoita/](https://www.linkedin.com/in/renato-minoita/)

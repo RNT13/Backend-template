@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: minha-api-django
+    name: backend-template
     env: docker
     plan: free
     region: oregon

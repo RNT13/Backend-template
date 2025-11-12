@@ -3,24 +3,33 @@ import sys
 from pathlib import Path
 
 import dj_database_url
+from dotenv import load_dotenv
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(BASE_DIR))
 
-IS_RENDER = os.getenv("RENDER", "false") == "true"
+load_dotenv()
 
-SECRET_KEY = os.environ.get("SECRET_KEY", "django-insecure-chave-local-para-desenvolvimento")
+# -----------------------------------------
 
-DEBUG = not IS_RENDER
+# Detectar se estamos no Render
+IS_RENDER = os.getenv("RENDER", "false").lower() == "true"
 
-ALLOWED_HOSTS = []
+# SECRET_KEY
+SECRET_KEY = os.getenv("SECRET_KEY", "django-insecure-chave-local-para-desenvolvimento")
+
+# DEBUG
+# A lógica `if not IS_RENDER` garante que DEBUG seja sempre False em produção no Render.
+DEBUG = bool(int(os.getenv("DEBUG", 1))) if not IS_RENDER else False
+
+# ALLOWED_HOSTS
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS", "127.0.0.1 localhost").split()
 if IS_RENDER:
-    RENDER_EXTERNAL_HOSTNAME = os.environ.get("RENDER_EXTERNAL_HOSTNAME")
+    RENDER_EXTERNAL_HOSTNAME = os.getenv("RENDER_EXTERNAL_HOSTNAME")
     if RENDER_EXTERNAL_HOSTNAME:
         ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
-else:
-    ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 
+# Aplicações instaladas
 INSTALLED_APPS = [
     "django.contrib.admin",
     "django.contrib.auth",
@@ -35,8 +44,13 @@ INSTALLED_APPS = [
     "rest_framework.authtoken",
 ]
 
+if DEBUG:
+    INSTALLED_APPS.append("debug_toolbar")
+
+# Middleware
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
@@ -46,13 +60,17 @@ MIDDLEWARE = [
 ]
 
 if DEBUG:
-    INSTALLED_APPS.append("debug_toolbar")
-    MIDDLEWARE.append("debug_toolbar.middleware.DebugToolbarMiddleware")
+    MIDDLEWARE.insert(
+        MIDDLEWARE.index("django.middleware.common.CommonMiddleware") + 1,
+        "debug_toolbar.middleware.DebugToolbarMiddleware",
+    )
     INTERNAL_IPS = ["127.0.0.1"]
 
+# URL e WSGI
 ROOT_URLCONF = "core.urls"
 WSGI_APPLICATION = "core.wsgi.application"
 
+# Templates
 TEMPLATES = [
     {
         "BACKEND": "django.template.backends.django.DjangoTemplates",
@@ -68,16 +86,22 @@ TEMPLATES = [
     },
 ]
 
+# Banco de dados
 if IS_RENDER:
     DATABASES = {"default": dj_database_url.config(conn_max_age=600, ssl_require=True)}
 else:
     DATABASES = {
         "default": {
-            "ENGINE": "django.db.backends.sqlite3",
-            "NAME": BASE_DIR / "db.sqlite3",
+            "ENGINE": os.getenv("SQL_ENGINE", "django.db.backends.postgresql"),
+            "NAME": os.getenv("SQL_DATABASE"),
+            "USER": os.getenv("SQL_USER"),
+            "PASSWORD": os.getenv("SQL_PASSWORD"),
+            "HOST": os.getenv("SQL_HOST"),
+            "PORT": os.getenv("SQL_PORT"),
         }
     }
 
+# Validação de senhas
 AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.UserAttributeSimilarityValidator"},
     {"NAME": "django.contrib.auth.password_validation.MinimumLengthValidator"},
@@ -85,16 +109,21 @@ AUTH_PASSWORD_VALIDATORS = [
     {"NAME": "django.contrib.auth.password_validation.NumericPasswordValidator"},
 ]
 
+# Localização
 LANGUAGE_CODE = "pt-br"
 TIME_ZONE = "America/Sao_Paulo"
 USE_I18N = True
 USE_TZ = True
 
+# Arquivos estáticos
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
+STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
 
+# Auto field padrão
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
+# DRF
 REST_FRAMEWORK = {
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.PageNumberPagination",
     "PAGE_SIZE": 10,
