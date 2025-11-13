@@ -42,9 +42,9 @@ router.register(r"orders", OrderViewSet, basename="order")
 urlpatterns = [
     path("", RedirectView.as_view(url="/api/v1/", permanent=False), name="index"),
     path("admin/", admin.site.urls),
+    path("api-token-auth/", obtain_auth_token, name="api_token_auth"),
     path("api/v1/", api_root, name="api-root"),
     path("api/v1/", include(router.urls)),
-    path("api-token-auth/", obtain_auth_token, name="api_token_auth"),
 ]
 
 if settings.DEBUG:

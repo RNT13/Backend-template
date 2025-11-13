@@ -9,7 +9,7 @@ services:
         generateValue: true
       - key: DEBUG
         value: "0"
-      - key: ALLOWED_HOSTS
+      - key: DJANGO_ALLOWED_HOSTS
         value: backend-template.onrender.com
       - key: DATABASE_URL
         fromDatabase:
